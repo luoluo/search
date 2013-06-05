@@ -1,0 +1,4 @@
+You could convert the Hash to an Array, reverse that, and then convert it back to a Hash:
+
+reversed_h = Hash[h.to_a.reverse]
+Hash#to_a gives you an array of arrays, the inner arrays are simple [key,value] pairs, then you reverse that array using Array#reverse, and Hash[] converts the [key,value] pairs back into a Hash.
