@@ -1,15 +1,10 @@
 from django.http import HttpResponse
+from django.template.loader import get_template
+from django.template import Context
 import datetime
 import sqlite3
 import sys
 
-#c = conn.cursor()
-#r = c.execute('select * from doc')
-#rows = r.fetchall()
-#for row in rows:
-#	print "query =\t" + row[0] + "\tthe Docs' detail info as follows:"
-#	print "name:" + row[1] + "\t\t" + row[2] + "\t\t" + row[3] + "\t\t" + row[5] + "\t\ticon_url:\t\t" + row[6]
-#
 def hello(request):
 	conn = sqlite3.connect("re1.db")
 	c = conn.cursor()
@@ -50,5 +45,6 @@ def hello(request):
 
 def current_datetime(request):
 	now = datetime.datetime.now()
-	html = "<html><body>It is now %s. </body> </html> " % now
+	t = get_template('cur.html')
+	html = t.render(Context({'cur': now}))
 	return HttpResponse(html)
