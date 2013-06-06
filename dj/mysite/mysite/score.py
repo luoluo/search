@@ -12,28 +12,43 @@ import sys
 def hello(request):
 	conn = sqlite3.connect("re2")
 	c = conn.cursor()
-	r = c.execute('select * from doc')
-	rowss = r.fetchall()
-	t = get_template('score.html')
-	html = ""
-	for rows in rowss:
-		if 'q' in request.GET:
-			ss = request.GET['q']
-			dd = re.match(r'.*(\d).*',ss)
-			rr = re.match(r'\d(.*)', ss)
-			dd = dd.group(1)
-			rr = rr.group(1)
-			c.execute('update doc set score = ? where name = ?', (int(dd), rr))
-			conn.commit()
+	if 'q' in request.GET:
+		ss = request.GET['q']
 
-		html = html +(t.render(Context({'qname': rows[0],
-								  'row1': rows[1] ,
-								  'row2': rows[2] ,
-								  'row3': rows[3] ,
-								  'row4': rows[4] ,
-								  'row5': rows[5] ,
-								  'row6': rows[7] ,
-								  'row7': rows[6]}
+		dd = re.match(r'(\d)%.*%\d',ss)
+		if dd:
+			dd = dd.group(1)
+			
+		rr = re.match(r'\d%(.*)%\d', ss)
+		if rr:
+			rr = rr.group(1)
+
+		ee = re.match(r'\d%.*%(\d)', ss)
+		if ee:
+			ee = ee.group(1)
+		else:
+			ee = 6
+		
+		ee = str(int(ee)+1)
+#		end = unicode(ee + 1)
+		c.execute('update doc set score = ? where name = ?', (int(dd), rr))
+		conn.commit()
+		r = c.execute('select * from doc where id = ?', (ee))
+		html = ee
+	else:
+		r = c.execute('select * from doc where id = 0')
+		html = ""
+	rows = r.fetchone()
+	t = get_template('score.html')
+	html = html +(t.render(Context({'iid':rows[0],
+								  'qname': rows[1],
+								  'row1': rows[2] ,
+								  'row2': rows[3] ,
+								  'row3': rows[4] ,
+								  'row4': rows[5] ,
+								  'row5': rows[6] ,
+								  'row6': rows[8] ,
+								  'row7': rows[7]}
 			)))
 	return HttpResponse(html)
 
