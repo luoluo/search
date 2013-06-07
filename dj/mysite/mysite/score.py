@@ -4,41 +4,45 @@ from django.shortcuts import render_to_response
 from django.template.loader import get_template
 from django.template import Context
 from django import forms
-from mysite.form import ContactForm
-import datetime
 import sqlite3
 import sys
 
 def hello(request):
 	conn = sqlite3.connect("re2")
 	c = conn.cursor()
+	html = ""
 	if 'q' in request.GET:
 		ss = request.GET['q']
 
-		dd = re.match(r'(\d)%.*%\d',ss)
+		dd = re.match(r'(\d)%.*%.*',ss)
 		if dd:
 			dd = dd.group(1)
 			
-		rr = re.match(r'\d%(.*)%\d', ss)
+		rr = re.match(r'\d%(\D*)%.*', ss)
 		if rr:
 			rr = rr.group(1)
 
-		ee = re.match(r'\d%.*%(\d)', ss)
+		ee = re.match(r'\d%.*%(\d+)', ss)
 		if ee:
 			ee = ee.group(1)
-		else:
-			ee = 6
 		
-		ee = str(int(ee)+1)
-#		end = unicode(ee + 1)
-		c.execute('update doc set score = ? where name = ?', (int(dd), rr))
+		c.execute('update doc set score = ? where id = ?', (int(dd), ee))
 		conn.commit()
-		r = c.execute('select * from doc where id = ?', (ee))
-		html = ee
+
+		iee = int(ee)
+		iee = iee + 1 
+
+##### why both work?? ####
+#		r = c.execute('select * from doc where id = "15"')
+#		r = c.execute('select * from doc where id = 15')
+		r = c.execute("select * from doc where id=:Id", {"Id":iee})
 	else:
 		r = c.execute('select * from doc where id = 0')
 		html = ""
 	rows = r.fetchone()
+	if rows == None:
+		html = "We've done, thank you for voting!!!"
+		return HttpResponse(html)
 	t = get_template('score.html')
 	html = html +(t.render(Context({'iid':rows[0],
 								  'qname': rows[1],
@@ -51,28 +55,7 @@ def hello(request):
 								  'row7': rows[7]}
 			)))
 	return HttpResponse(html)
-
-def contact(request):
-	t = get_template('form.html')
-	if request.method == 'POST':
-		form = ContactForm(request.POST)
-		if form.is_valid():
-			cd = form.cleaned_data
-			return HttpResponseRedirect('/search/')
-	return HttpResponse('search')
-
-def current_datetime(request):
-	now = datetime.datetime.now()
-	t = get_template('cur.html')
-	html = t.render(Context({'cur': now}))
-	return HttpResponse(html)
-
-def search_form(request):
-	return render_to_response('search_form.html')
-
-def search(request):
-	if 'q' in request.GET:
-		message = 'You give score: %s.' % request.GET['q']
-	else:
-		message = 'You submit empty form.'
-	return HttpResponse(message)
+def caculate(request):
+	conn = sqlite3.connect("re2")
+	c = conn.cursor()
+	
